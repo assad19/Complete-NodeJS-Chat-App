@@ -1,83 +1,43 @@
-// const socket = io('http://localhost:3000/');
-// console.log("connected")
-// let Name = prompt("Enter your Name");
-// let messageParent = document.getElementById("messageParent");
-// let form = document.getElementById("formSubmit");
+const socket = io('http://localhost:3000/');
 
-// const recieveAppend = (name,position) =>
-// {
-// let div = document.createElement("div");
-// let div2 = document.createElement("br");
-// div.classList.add('message');
-// div.classList.add('other-message');
-// div.classList.add(`float-${position}`);
-// div.innerText = `${name} has joined the chat`;
-// messageParent.recieveAppend(div);
-// messageParent.recieveAppend(div2);
-// }
+let inputMessage = "";
+let messageParent = document.getElementById("chat-messages");
+let form = document.getElementById("submitForm");
+let Name = prompt("Enter your Name");
 
-// socket.emit("new-user-joined", Name);
-// socket.on("user-joined", name =>
-// {
-//     recieveAppend(name, 'left')})
+const sendAppend = (message) => {
+    let div = document.createElement("div");
+    div.classList.add('message');
+    div.classList.add('send-message');
+    div.innerText = `${message}`;
+    messageParent.append(div);
+};
 
-document.addEventListener("DOMContentLoaded", () => {
-    const socket = io('http://localhost:3000/');
-    console.log("connected");
+const receiveAppend = (message) => {
+    let div = document.createElement("div");
+    div.classList.add('message');
+    div.classList.add('receive-message');
+    div.innerText = `${message}`;
+    messageParent.append(div);
+};
 
-    let inputMessage = "";
-    let messageParent = document.getElementById("messageParent");
-    let form = document.getElementById("submitForm");
-    let Name = prompt("Enter your Name");
-
-
-    const recieveAppend = (name, position) => {
-        let div = document.createElement("div");
-        let div2 = document.createElement("br");
-        div.classList.add('message');
-        div.classList.add('my-message');
-        div.classList.add('mt-4');
-        div.innerText = `${name} has joined the chat`;
-        messageParent.append(div);
-        messageParent.append(div2);
-    };
-
-
-    const sendAppend = (name, position) => {
-        let div = document.createElement("div");
-        let div2 = document.createElement("br");
-        div.classList.add('message');
-        div.classList.add('other-message');
-        div.classList.add('float-right');
-        div.classList.add('mt-4');
-        messageParent.append(div);
-        // messageParent.append(div2);
-    };
-
-
-
-    if (Name) {
-        socket.emit("new-user-joined", Name);
-    }
-
-    socket.on("user-joined", name => {
-        recieveAppend(name);
-
-    });
-
-    socket.on('receive', data => {
-        recieveAppend(`${data.message}: ${data.name}`);
-    }
-    )
-
-    form.addEventListener("submit", e => {
-        e.preventDefault();
-        inputMessage = document.getElementById("inputMessage").value;
-        sendAppend(inputMessage);
-        socket.emit("on",inputMessage)
-        inputMessage = "";
-    }
-    )
-
+socket.on("user-joined", name => {
+    receiveAppend(`The user ${name} has joined the chat`);
 });
 
+socket.on('receive', data => {
+    receiveAppend(`${data.message}: ${data.name}`);
+})
+
+form.addEventListener("submit", e => {
+    e.preventDefault();
+    inputMessage = document.getElementById("inputMessage");
+    sendAppend(inputMessage.value);
+    socket.emit("send", inputMessage.value)
+    inputMessage.value = "";
+    console.log("Sent Successfully")
+});
+
+socket.on('left', user => {
+    receiveAppend(`The user: ${user}: has left the chat`);
+})
